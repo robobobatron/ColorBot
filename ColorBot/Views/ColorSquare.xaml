@@ -8,11 +8,11 @@
              d:DesignHeight="300" d:DesignWidth="300">
 	<Border Name="TopLevelBorder"
 			BorderBrush="Purple"
-			BorderThickness="2"
+			BorderThickness="10"
 			CornerRadius="4"
 			Background="White">
 		<Viewbox>
-			<TextBlock Name="Numeral">0</TextBlock>
+			<TextBlock Name="Numeral" Foreground="White">0</TextBlock>
 		</Viewbox>
 	</Border>
 </UserControl>

@@ -5,12 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ColorBot"
         mc:Ignorable="d"
-		Background="Transparent"
-        Title="MainWindow" Height="750" Width="300"
-		Loaded="Window_Loaded">
-	<ScrollViewer VerticalScrollBarVisibility="Hidden">
-		<StackPanel x:Name="ColorSquareStack">
+		Background="Transparent" AllowsTransparency="True" WindowStyle="None"
+        Title="MainWindow" SizeToContent="Height" Width="200">
+	<Border>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="5*"/>
+				<RowDefinition Height="95*"/>
+			</Grid.RowDefinitions>
+			<local:CountDownTimerBar x:Name="timeBar" Grid.Row="0"/>
+			<ScrollViewer VerticalScrollBarVisibility="Hidden" Grid.Row="1">
+				<StackPanel x:Name="ColorSquareStack">
 
-		</StackPanel>
-	</ScrollViewer>
+				</StackPanel>
+			</ScrollViewer>
+		</Grid>
+	</Border>
 </Window>

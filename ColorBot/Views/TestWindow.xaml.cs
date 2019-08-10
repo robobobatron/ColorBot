@@ -27,6 +27,7 @@ namespace ColorBot
 			if(e.Key == Key.Enter)
 			{
 				AppLevel.LogColor(DebugWindow.Text);
+				DebugWindow.Text = "";
 			}
 		}
 	}

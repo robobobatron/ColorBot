@@ -6,5 +6,5 @@
         xmlns:local="clr-namespace:ColorBot"
         mc:Ignorable="d"
         Title="TestWindow" SizeToContent="WidthAndHeight">
-	<TextBox x:Name="DebugWindow" Height="20" KeyDown="TextBox_KeyDown"></TextBox>
+	<TextBox x:Name="DebugWindow" Height="20" Width="300" KeyDown="TextBox_KeyDown"></TextBox>
 </Window>
