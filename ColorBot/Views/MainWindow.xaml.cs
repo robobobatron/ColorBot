@@ -31,29 +31,31 @@ namespace ColorBot
         }
 		private void DoListRefresh(object sender, EventArgs e)
 		{
-			ColorSquareStack.Children.Clear();
-			List<App.ColorCount> colorCounts = AppLevel.colorCounts.Values.ToList();
-			colorCounts = colorCounts.OrderByDescending(cc => cc.Birthdate).ToList();
-			colorCounts = colorCounts.OrderByDescending(cc => cc.VoteCount).ToList();
-			colorCounts = colorCounts.Take(3).ToList();
-
-			timeBar.ChangeColor(colorCounts.First().color);
-
-			foreach (App.ColorCount cc in colorCounts)
+			this.Dispatcher.Invoke(() =>
 			{
-				ColorSquare colorSquare = new ColorSquare();
-				colorSquare.Numeral.Text = cc.VoteCount.ToString();
-				colorSquare.TopLevelBorder.Background = new SolidColorBrush(cc.color) { Opacity = 0.3 };
-				colorSquare.TopLevelBorder.BorderBrush = new SolidColorBrush(cc.color);
-				colorSquare.Height = ActualWidth;
-				ColorSquareStack.Children.Add(colorSquare); 
-			}
+				ColorSquareStack.Children.Clear();
+				List<App.ColorCount> colorCounts = AppLevel.colorCounts.Values.ToList();
+				colorCounts = colorCounts.OrderByDescending(cc => cc.Birthdate).ToList();
+				colorCounts = colorCounts.OrderByDescending(cc => cc.VoteCount).ToList();
+				colorCounts = colorCounts.Take(3).ToList();
+
+				timeBar.ChangeColor(colorCounts.First().color);
+
+				foreach (App.ColorCount cc in colorCounts)
+				{
+					ColorSquare colorSquare = new ColorSquare();
+					colorSquare.Numeral.Text = cc.VoteCount.ToString();
+					colorSquare.TopLevelBorder.BorderBrush = new SolidColorBrush(cc.color);
+					colorSquare.Height = ActualWidth;
+					ColorSquareStack.Children.Add(colorSquare);
+				}
+			});
 		}
 		private void DoReset(object sender, TimeSpan dateTime)
 		{
 			Dispatcher.BeginInvoke(new Action(() =>
 			{
-				timeBar.ChangeColor(Colors.White);
+				timeBar.ChangeColor(Colors.Gray);
 				ColorSquareStack.Children.Clear();
 			}));
 		}

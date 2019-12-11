@@ -12,7 +12,7 @@
 		<Grid>
 			<Border Name="innerBorder" HorizontalAlignment="Left" Width="{Binding ActualWidth, ElementName=outerBorder}">
 				<Border.Background>
-					<SolidColorBrush Color="White" Opacity="0.7"/>
+					<SolidColorBrush Color="Gray"/>
 				</Border.Background>
 			</Border>
 			<Viewbox>

@@ -26,7 +26,19 @@ namespace ColorBot
 		{
 			if(e.Key == Key.Enter)
 			{
-				AppLevel.LogColor(DebugWindow.Text);
+				if (DebugWindow.Text.First() == '!')
+				{
+					AppLevel.AddRule("DMC5", DebugWindow.Text.Substring(1, DebugWindow.Text.Length - 1), false);
+				}
+				else if (DebugWindow.Text.First() == '@')
+				{
+					AppLevel.AddRule("DMC5", DebugWindow.Text.Substring(1, DebugWindow.Text.Length - 1), true);
+				}
+				else
+				{
+					AppLevel.LogColor(DebugWindow.Text);
+				}
+				
 				DebugWindow.Text = "";
 			}
 		}

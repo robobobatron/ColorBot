@@ -10,7 +10,7 @@
 			BorderBrush="Purple"
 			BorderThickness="10"
 			CornerRadius="4"
-			Background="White">
+			Background="Transparent">
 		<Viewbox>
 			<TextBlock Name="Numeral" Foreground="White">0</TextBlock>
 		</Viewbox>

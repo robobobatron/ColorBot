@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ColorBot"
         mc:Ignorable="d"
-		Background="Transparent" AllowsTransparency="True" WindowStyle="None"
+		Background="LawnGreen" WindowStyle="None"
         Title="MainWindow" SizeToContent="Height" Width="200">
 	<Border>
 		<Grid>

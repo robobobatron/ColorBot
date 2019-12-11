@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Media;
+using TwitchLib.Client;
+using TwitchLib.Client.Models;
 
 namespace ColorBot
 {
@@ -27,11 +29,12 @@ namespace ColorBot
 		public event EventHandler<TimeUpdate> OneSecondUpdate;
 
 		SQLiteConnection DBConnect;
+		TwitchClient twitchClient;
 
 		public Dictionary<String, ColorCount> colorCounts = new Dictionary<String, ColorCount>();
 
 		public DateTime CountDownStart = new DateTime();
-		public int TimerLengthInSeconds = 30;
+		public int TimerLengthInSeconds = 90;
 
 		private List<ILocalHueClient> avaialableBridges = new List<ILocalHueClient>();
 
@@ -40,14 +43,28 @@ namespace ColorBot
 			Interval = 250
 		};
 
+		public MainWindow window;
+		public TestWindow test;
+
 		public App()
 		{
+			ConnectionCredentials connectionCredentials = new ConnectionCredentials("huecolorbot", ConfigurationManager.AppSettings["TwitchApiKey"]);
+
+			twitchClient = new TwitchClient();
+			twitchClient.Initialize(connectionCredentials, "Robobobatron");
+
+			twitchClient.OnJoinedChannel += TwitchClient_OnJoinedChannel;
+			twitchClient.OnMessageReceived += TwitchClient_OnMessageReceived;
+
+			twitchClient.Connect();
+
 			if(!File.Exists(Directory.GetCurrentDirectory() + @"\ColorBot.sqlite"))
 			{
 				SQLiteConnection.CreateFile("ColorBot.sqlite");
 				DBConnect = new SQLiteConnection("Data Source=ColorBot.sqlite");
 				DBConnect.Open();
 				new SQLiteCommand("CREATE TABLE 'HueBridge' ( 'key'  TEXT ); ", DBConnect).ExecuteNonQuery();
+				new SQLiteCommand("CREATE TABLE 'DrinkingRules' ( 'GameName'  TEXT, 'RuleText' Text, 'isShot' bit); ", DBConnect).ExecuteNonQuery();
 			}
 			else
 			{
@@ -55,10 +72,13 @@ namespace ColorBot
 				DBConnect.Open();
 			}
 
-			MainWindow window = new MainWindow();
+			window = new MainWindow();
 			window.Show();
-			TestWindow test = new TestWindow();
+			test = new TestWindow();
 			test.Show();
+			Controls controls = new Controls();
+			controls.Show();
+
 			pulse.Elapsed += PulseHit;
 			pulse.Start();
 			CountDownStart = DateTime.Now;
@@ -121,6 +141,21 @@ namespace ColorBot
 			};
 			bw.RunWorkerAsync();
 		}
+
+		private void TwitchClient_OnMessageReceived(object sender, TwitchLib.Client.Events.OnMessageReceivedArgs e)
+		{
+			if(e.ChatMessage.Message[0] == '!')
+			{
+				twitchClient.SendMessage(e.ChatMessage.Channel, LogColor(e.ChatMessage.Message.Substring(1)));
+			}
+			
+		}
+
+		private void TwitchClient_OnJoinedChannel(object sender, TwitchLib.Client.Events.OnJoinedChannelArgs e)
+		{
+			twitchClient.SendMessage(e.Channel, "Colorbot joined");
+		}
+
 		DateTime sinceOneHit = DateTime.Now;
 		DateTime sinceReset = DateTime.Now;
 		private void PulseHit(object o, ElapsedEventArgs e)
@@ -154,22 +189,18 @@ namespace ColorBot
 
 			ColorCount ctp = colors.OrderByDescending(ccc => ccc.VoteCount).FirstOrDefault();
 			Color c;
-			if (ctp == null)
-			{
-				c = Colors.White;
-			}
-			else
+			if (ctp != null)
 			{
 				c = ctp.color;
-			}
 
-			LightCommand command = new LightCommand();
-			command.Brightness = 100;
-			command.TurnOn().SetColor(new RGBColor(c.ScR, c.ScG, c.ScB));
+				LightCommand command = new LightCommand();
+				command.Brightness = 100;
+				command.TurnOn().SetColor(new RGBColor(c.ScR * 100, c.ScG * 100, c.ScB * 100));
 
-			foreach (ILocalHueClient Hue in avaialableBridges)
-			{
-				Hue.SendCommandAsync(command);
+				foreach (ILocalHueClient Hue in avaialableBridges)
+				{
+					Hue.SendCommandAsync(command);
+				}
 			}
 		}
 		public String LogColor(String ColorName)
@@ -184,6 +215,10 @@ namespace ColorBot
 			{
 				try
 				{
+					if (ColorName.ToLower() == "lawngreen")
+					{
+						throw new Exception("Reserved color");
+					}
 					colorCounts.Add(ColorName, new ColorCount()
 					{
 						color = (Color)ColorConverter.ConvertFromString(ColorName),
@@ -198,10 +233,34 @@ namespace ColorBot
 			VoteDictChanged?.Invoke(this, new EventArgs());
 			return "Noice. I know that one.";
 		}
+		public void AddRule(String GameName, String RuleText, bool isShot)
+		{
+			new SQLiteCommand(String.Format("insert into 'DrinkingRules' (GameName, RuleText, isShot) values ('{0}', '{1}', {2})", GameName, RuleText, isShot ? 1 : 0), DBConnect).ExecuteNonQuery();
+		}
+		public List<DrinkingRule> GetAllRules(String GameName)
+		{
+			SQLiteDataReader reader = new SQLiteCommand(String.Format("Select * from DrinkingRules Where GameName = '{0}';", GameName), DBConnect).ExecuteReader();
+			List<DrinkingRule> Rules = new List<DrinkingRule>();
+			while (reader.Read())
+			{
+				DrinkingRule d = new DrinkingRule();
+				d.GameName = reader["GameName"].ToString();
+				d.RuleText = reader["RuleText"].ToString();
+				d.isShot = (bool)reader["isShot"];
+				Rules.Add(d);
+			}
+			return Rules;
+		}
 		public void ResetColorDict()
 		{
 			colorCounts = new Dictionary<String, ColorCount>();
 			VoteDictChanged?.Invoke(this, new EventArgs());
+		}
+		public class DrinkingRule
+		{
+			public String GameName { get; set; }
+			public String RuleText { get; set; }
+			public bool isShot { get; set; }
 		}
 		public class ColorCount
 		{
