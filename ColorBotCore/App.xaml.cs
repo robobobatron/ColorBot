@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Data;
-using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,17 +18,27 @@ using System.Windows;
 using System.Windows.Media;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
+using TwitchLib.Api;
+using TwitchLib.PubSub;
+using System.Data.SQLite;
+using ColorBotCore.Views;
+using Microsoft.Extensions.Configuration;
+using TwitchLib.Client.Events;
 
-namespace ColorBot
+namespace ColorBotCore
 {
+	/// <summary>
+	/// Interaction logic for App.xaml
+	/// </summary>
 	public partial class App : Application
 	{
-		public event EventHandler VoteDictChanged;
-		public event EventHandler<TimeSpan> ResetTimerElapsed;
-		public event EventHandler<TimeUpdate> OneSecondUpdate;
+		public event EventHandler? VoteDictChanged;
+		public event EventHandler<TimeSpan>? ResetTimerElapsed;
+		public event EventHandler<TimeUpdate>? OneSecondUpdate;
 
 		SQLiteConnection DBConnect;
-		TwitchClient twitchClient;
+		readonly TwitchClient twitchClient = new TwitchClient();
+		readonly TwitchPubSub twitchPubSub = new TwitchPubSub();
 
 		public Dictionary<String, ColorCount> colorCounts = new Dictionary<String, ColorCount>();
 
@@ -48,23 +57,33 @@ namespace ColorBot
 
 		public App()
 		{
-			ConnectionCredentials connectionCredentials = new ConnectionCredentials("huecolorbot", ConfigurationManager.AppSettings["TwitchApiKey"]);
+			var ConfigBuilder = new ConfigurationBuilder()
+				.SetBasePath(Directory.GetCurrentDirectory())
+				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-			twitchClient = new TwitchClient();
+			IConfigurationRoot configuration = ConfigBuilder.Build();
+
+
+			ConnectionCredentials connectionCredentials = new ConnectionCredentials("huecolorbot", configuration["TwitchApiKey"]);
+
 			twitchClient.Initialize(connectionCredentials, "Robobobatron");
-
 			twitchClient.OnJoinedChannel += TwitchClient_OnJoinedChannel;
-			twitchClient.OnMessageReceived += TwitchClient_OnMessageReceived;
-
+			//twitchClient.OnMessageReceived += TwitchClient_OnMessageReceived;
+			twitchClient.OnChatCommandReceived += TwitchClient_OnChatCommandReceived;
 			twitchClient.Connect();
 
-			if(!File.Exists(Directory.GetCurrentDirectory() + @"\ColorBot.sqlite"))
+			twitchPubSub.OnPubSubServiceConnected += TwitchPubSub_OnPubSubServiceConnected;
+			twitchPubSub.OnBitsReceived += TwitchPubSub_OnBitsReceived;
+			twitchPubSub.Connect();
+
+			if (!File.Exists(Directory.GetCurrentDirectory() + @"\ColorBot.sqlite"))
 			{
 				SQLiteConnection.CreateFile("ColorBot.sqlite");
 				DBConnect = new SQLiteConnection("Data Source=ColorBot.sqlite");
 				DBConnect.Open();
 				new SQLiteCommand("CREATE TABLE 'HueBridge' ( 'key'  TEXT ); ", DBConnect).ExecuteNonQuery();
-				new SQLiteCommand("CREATE TABLE 'DrinkingRules' ( 'GameName'  TEXT, 'RuleText' Text, 'isShot' bit); ", DBConnect).ExecuteNonQuery();
+				new SQLiteCommand("CREATE TABLE 'DrinkingRules' ( 'GameName'  TEXT, 'RuleText' TEXT, 'isShot' bit); ", DBConnect).ExecuteNonQuery();
+				new SQLiteCommand("CREATE TABLE 'BitCounts' ('UserID' TEXT);", DBConnect).ExecuteNonQuery();
 			}
 			else
 			{
@@ -84,24 +103,24 @@ namespace ColorBot
 			CountDownStart = DateTime.Now;
 
 			BackgroundWorker bw = new BackgroundWorker();
-			bw.DoWork += async (object o, DoWorkEventArgs e) =>
+			bw.DoWork += async (object? o, DoWorkEventArgs e) =>
 			{
 				IBridgeLocator locator = new HttpBridgeLocator();
-				List<LocatedBridge> bridgeIPs = new List<LocatedBridge>();
-				foreach(LocatedBridge lb in await locator.LocateBridgesAsync(TimeSpan.FromSeconds(5)))
+				List<LocatedBridge> bridgeIPs = new();
+				foreach (LocatedBridge lb in await locator.LocateBridgesAsync(TimeSpan.FromSeconds(5)))
 				{
 					bridgeIPs.Add(lb);
 					avaialableBridges.Add(new LocalHueClient(lb.IpAddress));
 				}
-				SQLiteDataReader reader = new SQLiteCommand("Select * from HueBridge;", DBConnect).ExecuteReader();
-				List<String> ApiKeys = new List<String>();
+				SQLiteDataReader reader = new SQLiteCommand("Select * from HueBridge;", DBConnect).ExecuteReader().;
+				List<String> ApiKeys = new();
 				while (reader.Read())
 				{
 					ApiKeys.Add(reader["key"].ToString());
 				}
-				for(int j = 0; j < avaialableBridges.Count; j++)
+				for (int j = 0; j < avaialableBridges.Count; j++)
 				{
-					foreach(String u in ApiKeys)
+					foreach (String u in ApiKeys)
 					{
 						try
 						{
@@ -142,18 +161,33 @@ namespace ColorBot
 			bw.RunWorkerAsync();
 		}
 
-		private void TwitchClient_OnMessageReceived(object sender, TwitchLib.Client.Events.OnMessageReceivedArgs e)
+		private void TwitchClient_OnChatCommandReceived(object? sender, OnChatCommandReceivedArgs? e)
 		{
-			if(e.ChatMessage.Message[0] == '!')
+			if (e?.Command.CommandText.ToLower() == "color")
 			{
-				twitchClient.SendMessage(e.ChatMessage.Channel, LogColor(e.ChatMessage.Message.Substring(1)));
+				twitchClient.SendMessage(e.Command.ChatMessage.Channel, LogColor(e.Command.ArgumentsAsString));
 			}
-			
+			else if (e?.Command.CommandText.ToLower() == "addrule")
+			{
+
+			}
 		}
 
-		private void TwitchClient_OnJoinedChannel(object sender, TwitchLib.Client.Events.OnJoinedChannelArgs e)
+		private void TwitchPubSub_OnBitsReceived(object sender, TwitchLib.PubSub.Events.OnBitsReceivedArgs e)
 		{
-			twitchClient.SendMessage(e.Channel, "Colorbot joined");
+			twitchClient.SendMessage(e.ChannelId, String.Format("DUDE! {0} just donated {1} bits! They have donated {2} bits so far", e.Username, e.BitsUsed, e.TotalBitsUsed));
+			twitchClient.SendMessage(e.ChannelId, "Did you know that you can use your bits to buy rules additions?");
+			//e.UserId
+		}
+
+		private void TwitchPubSub_OnPubSubServiceConnected(object? sender, EventArgs? e)
+		{
+			twitchPubSub.ListenToBitsEventsV2("Robobobatron");
+		}
+
+		private void TwitchClient_OnJoinedChannel(object? sender, OnJoinedChannelArgs? e)
+		{
+			twitchClient.SendMessage(e?.Channel, "Colorbot joined");
 		}
 
 		DateTime sinceOneHit = DateTime.Now;
@@ -251,63 +285,59 @@ namespace ColorBot
 			}
 			return Rules;
 		}
-		public void ResetColorDict()
-		{
-			colorCounts = new Dictionary<String, ColorCount>();
-			VoteDictChanged?.Invoke(this, new EventArgs());
-		}
-		public class DrinkingRule
-		{
-			public String GameName { get; set; }
-			public String RuleText { get; set; }
-			public bool isShot { get; set; }
-		}
-		public class ColorCount
-		{
-			public Color color { get; set; }
-			public int VoteCount { get; set; }
-			public DateTime Birthdate { get; set; }
-			public ColorCount()
-			{
-				color = Colors.White;
-				VoteCount = 0;
-				Birthdate = DateTime.Now;
-			}
-		}
-		public class TimeUpdate
-		{
-			public TimeSpan timeToShow { get; set; }
-			private double _ratioToShow = 0;
-			public double ratioToShow
-			{
-				get
-				{
-					return _ratioToShow;
-				}
-				set
-				{
-					if(value > 1)
-					{
-						_ratioToShow = 1;
-					}
-					else if (value < 0)
-					{
-						_ratioToShow = 0;
-					}
-					else
-					{
-						_ratioToShow = value;
-					}
-				}
-			}
-		}
-		public class RetryHueTimer : Timer
-		{
-			public int index { get; set; }
-			public RetryHueTimer() : base()
-			{
+	}
 
+	public class DrinkingRule
+	{
+		public String GameName { get; set; }
+		public String RuleText { get; set; }
+		public bool isShot { get; set; }
+	}
+	public class ColorCount
+	{
+		public Color color { get; set; }
+		public int VoteCount { get; set; }
+		public DateTime Birthdate { get; set; }
+		public ColorCount()
+		{
+			color = Colors.White;
+			VoteCount = 0;
+			Birthdate = DateTime.Now;
+		}
+	}
+	public class TimeUpdate
+	{
+		public TimeSpan timeToShow { get; set; }
+		private double _ratioToShow = 0;
+		public double ratioToShow
+		{
+			get
+			{
+				return _ratioToShow;
 			}
+			set
+			{
+				if (value > 1)
+				{
+					_ratioToShow = 1;
+				}
+				else if (value < 0)
+				{
+					_ratioToShow = 0;
+				}
+				else
+				{
+					_ratioToShow = value;
+				}
+			}
+		}
+	}
+	public class RetryHueTimer : Timer
+	{
+		public int index { get; set; }
+		public RetryHueTimer() : base()
+		{
+
 		}
 	}
 }

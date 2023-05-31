@@ -13,10 +13,13 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ColorBot
+namespace ColorBotCore.Views
 {
-	public partial class CountDownTimerBar : UserControl
-	{
+    /// <summary>
+    /// Interaction logic for CountDownTimerBar.xaml
+    /// </summary>
+    public partial class CountDownTimerBar : UserControl
+    {
 		public TimeSpan TimerLength { get; set; }
 
 		public CountDownTimerBar()
@@ -24,7 +27,7 @@ namespace ColorBot
 			InitializeComponent();
 			timerText.Text = TimerLength.ToString(@"mm\:ss");
 		}
-		public void TimerBarWidthChange(object o, App.TimeUpdate TU)
+		public void TimerBarWidthChange(object o, TimeUpdate TU)
 		{
 			Dispatcher.BeginInvoke(new Action(() =>
 			{

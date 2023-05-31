@@ -13,18 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ColorBot
+namespace ColorBotCore.Views
 {
-	/// <summary>
-	/// Interaction logic for RuleLine.xaml
-	/// </summary>
-	public partial class RuleLine : UserControl
-	{
-		public RuleLine(int Number, String Text)
-		{
-			InitializeComponent();
-			RuleNumber.Text = Number.ToString();
-			RuleText.Text = Text;
-		}
-	}
+    /// <summary>
+    /// Interaction logic for ColorSquare.xaml
+    /// </summary>
+    public partial class ColorSquare : UserControl
+    {
+        public ColorSquare()
+        {
+            InitializeComponent();
+        }
+    }
 }

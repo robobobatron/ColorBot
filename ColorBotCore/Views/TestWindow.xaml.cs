@@ -12,19 +12,22 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace ColorBot
+namespace ColorBotCore.Views
 {
-	public partial class TestWindow : Window
-	{
+    /// <summary>
+    /// Interaction logic for TestWindow.xaml
+    /// </summary>
+    public partial class TestWindow : Window
+    {
 		private App AppLevel = (App)Application.Current;
 		public TestWindow()
-		{
-			InitializeComponent();
-		}
+        {
+            InitializeComponent();
+        }
 
 		private void TextBox_KeyDown(object sender, KeyEventArgs e)
 		{
-			if(e.Key == Key.Enter)
+			if (e.Key == Key.Enter)
 			{
 				if (DebugWindow.Text.First() == '!')
 				{
@@ -38,7 +41,7 @@ namespace ColorBot
 				{
 					AppLevel.LogColor(DebugWindow.Text);
 				}
-				
+
 				DebugWindow.Text = "";
 			}
 		}

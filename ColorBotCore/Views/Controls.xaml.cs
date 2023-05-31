@@ -12,10 +12,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace ColorBot
+namespace ColorBotCore.Views
 {
-	public partial class Controls : Window
-	{
+    /// <summary>
+    /// Interaction logic for Controls.xaml
+    /// </summary>
+    public partial class Controls : Window
+    {
 		private App AppLevel = (App)Application.Current;
 
 		public Controls()

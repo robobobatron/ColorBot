@@ -1,19 +1,19 @@
-﻿<Window x:Class="ColorBot.MainWindow"
+﻿<Window x:Class="ColorBotCore.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ColorBot"
+        xmlns:local="clr-namespace:ColorBotCore"
+		xmlns:Controls="clr-namespace:ColorBotCore.Views"
         mc:Ignorable="d"
-		Background="LawnGreen" WindowStyle="None"
-        Title="MainWindow" SizeToContent="Height" Width="200">
+        Background="LawnGreen" WindowStyle="None" Title="MainWindow" SizeToContent="Height" Width="200">
 	<Border>
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="5*"/>
 				<RowDefinition Height="95*"/>
 			</Grid.RowDefinitions>
-			<local:CountDownTimerBar x:Name="timeBar" Grid.Row="0"/>
+			<Controls:CountDownTimerBar x:Name="timeBar" Grid.Row="0"/>
 			<ScrollViewer VerticalScrollBarVisibility="Hidden" Grid.Row="1">
 				<StackPanel x:Name="ColorSquareStack">
 

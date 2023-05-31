@@ -1,7 +1,8 @@
-﻿<Application x:Class="ColorBot.App"
+﻿<Application x:Class="ColorBotCore.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:ColorBot">
+             xmlns:local="clr-namespace:ColorBotCore"
+             StartupUri="MainWindow.xaml">
     <Application.Resources>
          
     </Application.Resources>
