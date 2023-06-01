@@ -57,10 +57,7 @@ public partial class App : Application
 		IConfigurationRoot configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).Build();
 
 		ServiceCollection services = new ServiceCollection();
-		services.AddDbContext<ColorbotDB>(options =>
-		{
-			options.UseSqlite("Data Source=ColorBot.sqlite");
-		});
+		services.AddDbContext<ColorbotDB>(options => { options.UseSqlite("Data Source=ColorBot.sqlite"); });
 		services.AddSingleton<TwitchClient>();
 		services.AddSingleton<TwitchPubSub>();
 		services.AddSingleton<List<ILocalHueClient>>();
