@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColorBotCore.Model.Viewmodel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,37 +14,39 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ColorBotCore.Views
-{
-    /// <summary>
-    /// Interaction logic for CountDownTimerBar.xaml
-    /// </summary>
-    public partial class CountDownTimerBar : UserControl
-    {
-		public TimeSpan TimerLength { get; set; }
+namespace ColorBotCore.Views;
 
-		public CountDownTimerBar()
+/// <summary>
+/// Interaction logic for CountDownTimerBar.xaml
+/// </summary>
+public partial class CountDownTimerBar : UserControl
+{
+	public TimeSpan TimerLength { get; set; }
+
+	public CountDownTimerBar()
+	{
+		InitializeComponent();
+		timerText.Text = TimerLength.ToString(@"mm\:ss");
+	}
+
+	public void TimerBarWidthChange(TimeUpdate TU)
+	{
+		innerBorder.Width = outerBorder.ActualWidth - (outerBorder.ActualWidth * TU.ratioToShow);
+		timerText.Text = TimeSpan.FromSeconds(Math.Ceiling(TU.timeToShow.TotalSeconds)).ToString(@"mm\:ss");
+	}
+
+	public void TimerBarReset(object sender, TimeSpan resetTime)
+	{
+		Dispatcher.BeginInvoke(new Action(() =>
 		{
-			InitializeComponent();
-			timerText.Text = TimerLength.ToString(@"mm\:ss");
-		}
-		public void TimerBarWidthChange(object o, TimeUpdate TU)
-		{
-			Dispatcher.BeginInvoke(new Action(() =>
-			{
-				innerBorder.Width = outerBorder.ActualWidth - (outerBorder.ActualWidth * TU.ratioToShow);
-				timerText.Text = TimeSpan.FromSeconds(Math.Ceiling(TU.timeToShow.TotalSeconds)).ToString(@"mm\:ss");
-			}));
-		}
-		public void TimerBarReset(object sender, TimeSpan resetTime)
-		{
-			Dispatcher.BeginInvoke(new Action(() =>
-			{
-				innerBorder.Width = outerBorder.ActualWidth;
-				timerText.Text = resetTime.ToString(@"mm\:ss");
-			}));
-		}
-		public void ChangeColor(Color colorToChangeTo)
+			innerBorder.Width = outerBorder.ActualWidth;
+			timerText.Text = resetTime.ToString(@"mm\:ss");
+		}));
+	}
+
+	public void ChangeColor(Color colorToChangeTo)
+	{
+		if (colorToChangeTo != ((SolidColorBrush)innerBorder.Background).Color)
 		{
 			Dispatcher.BeginInvoke(new Action(() =>
 			{

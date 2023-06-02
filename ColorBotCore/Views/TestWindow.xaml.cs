@@ -19,11 +19,14 @@ namespace ColorBotCore.Views
     /// </summary>
     public partial class TestWindow : Window
     {
-		private App AppLevel = (App)Application.Current;
-		public TestWindow()
+		MainWindow _mainWindow;
+
+		public TestWindow(MainWindow mw)
         {
             InitializeComponent();
-        }
+			_mainWindow = mw;
+
+		}
 
 		private void TextBox_KeyDown(object sender, KeyEventArgs e)
 		{
@@ -31,15 +34,15 @@ namespace ColorBotCore.Views
 			{
 				if (DebugWindow.Text.First() == '!')
 				{
-					AppLevel.AddRule("DMC5", DebugWindow.Text.Substring(1, DebugWindow.Text.Length - 1), false);
+
 				}
 				else if (DebugWindow.Text.First() == '@')
 				{
-					AppLevel.AddRule("DMC5", DebugWindow.Text.Substring(1, DebugWindow.Text.Length - 1), true);
+
 				}
 				else
 				{
-					AppLevel.LogColor(DebugWindow.Text);
+					_mainWindow.LogColor(DebugWindow.Text);
 				}
 
 				DebugWindow.Text = "";

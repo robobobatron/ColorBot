@@ -1,4 +1,8 @@
-﻿using ColorBotCore.Views;
+﻿using ColorBotCore.Model.Viewmodel;
+using ColorBotCore.Views;
+using Q42.HueApi.ColorConverters;
+using Q42.HueApi.Interfaces;
+using Q42.HueApi;
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices.ActiveDirectory;
@@ -14,6 +18,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ColorBotCore.Model;
+using System.Timers;
 
 namespace ColorBotCore
 {
@@ -22,46 +28,96 @@ namespace ColorBotCore
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		private readonly App AppLevel = Application.Current as App;
-		public MainWindow()
+		public List<ColorCount> colorCounts = new();
+		public BridgeCollection _bridgeCollection;
+
+		public readonly int TimerLengthInSeconds = 90;
+		private DateTime sinceOneHit = DateTime.Now;
+		private DateTime sinceReset = DateTime.Now;
+
+		public Timer pulse = new() { Interval = 250 };
+
+		public MainWindow(BridgeCollection bs)
 		{
 			InitializeComponent();
-			AppLevel.VoteDictChanged += DoListRefresh;
-			AppLevel.OneSecondUpdate += timeBar.TimerBarWidthChange;
-			AppLevel.ResetTimerElapsed += timeBar.TimerBarReset;
-			AppLevel.ResetTimerElapsed += DoReset;
-			timeBar.TimerLength = TimeSpan.FromSeconds(AppLevel.TimerLengthInSeconds);
+			_bridgeCollection = bs;
+			timeBar.TimerLength = TimeSpan.FromSeconds(TimerLengthInSeconds);
+			pulse.Elapsed += PulseHit;
+			pulse.Start();
 		}
 
-		private void DoListRefresh(object sender, EventArgs e)
+		private void PulseHit(object o, ElapsedEventArgs e)
 		{
-			this.Dispatcher.Invoke(() =>
+			if (colorCounts.Count > 0)
 			{
-				ColorSquareStack.Children.Clear();
-				List<ColorCount> colorCounts = AppLevel.colorCounts.Values.ToList();
-				colorCounts = colorCounts.OrderByDescending(cc => cc.Birthdate).ToList();
-				colorCounts = colorCounts.OrderByDescending(cc => cc.VoteCount).ToList();
-				colorCounts = colorCounts.Take(3).ToList();
+				Application.Current.Dispatcher.Invoke(new Action(() => timeBar.ChangeColor(colorCounts.First().color)));
+			}
 
-				timeBar.ChangeColor(colorCounts.First().color);
+			if (Math.Floor((DateTime.Now - sinceOneHit).TotalSeconds) >= 1)
+			{
+				sinceOneHit = DateTime.Now;
+				Application.Current.Dispatcher.Invoke(new Action(() => timeBar.TimerBarWidthChange(new TimeUpdate() { ratioToShow = (DateTime.Now - sinceReset).TotalSeconds / TimerLengthInSeconds, timeToShow = sinceReset.AddSeconds(TimerLengthInSeconds) - DateTime.Now })));
+			}
 
-				foreach (ColorCount cc in colorCounts)
+			if ((DateTime.Now - sinceReset).TotalSeconds >= TimerLengthInSeconds)
+			{
+				sinceReset = DateTime.Now;
+				Application.Current.Dispatcher.Invoke(new Action(() =>
 				{
+					if (colorCounts.Count > 0)
+					{
+						_bridgeCollection.DoColorChange(colorCounts.First().color);
+					}
+					colorCounts = new();
+					timeBar.ChangeColor(Colors.Gray);
+					ColorSquareStack.Children.Clear();
+				}));
+			}
+		}
+
+		public String LogColor(String ColorName)
+		{
+			ColorCount c = colorCounts.Where(x => x.color == (Color)ColorConverter.ConvertFromString(ColorName.ToLower().Replace(" ", ""))).FirstOrDefault();
+
+			if (c != null)
+			{
+				c.VoteCount++;
+			}
+			else
+			{
+				try
+				{
+					if (ColorName.ToLower() == "lawngreen")
+					{
+						throw new Exception("Reserved color");
+					}
+					colorCounts.Add(new ColorCount()
+					{
+						color = (Color)ColorConverter.ConvertFromString(ColorName),
+						VoteCount = 1
+					});
+				}
+				catch
+				{
+					return "Sorry, bruh. I dont know that one. I know that one.";
+				}
+			}
+
+			Application.Current.Dispatcher.Invoke(new Action(() => ColorSquareStack.Children.Clear()));
+			colorCounts = colorCounts.OrderByDescending(cc => cc.Birthdate).ToList();
+			colorCounts = colorCounts.OrderByDescending(cc => cc.VoteCount).ToList();
+
+			foreach (ColorCount cc in colorCounts.Take(3).ToList())
+			{
+				Application.Current.Dispatcher.Invoke(new Action(() => {
 					ColorSquare colorSquare = new ColorSquare();
 					colorSquare.Numeral.Text = cc.VoteCount.ToString();
 					colorSquare.TopLevelBorder.BorderBrush = new SolidColorBrush(cc.color);
 					colorSquare.Height = ActualWidth;
 					ColorSquareStack.Children.Add(colorSquare);
-				}
-			});
-		}
-		private void DoReset(object sender, TimeSpan dateTime)
-		{
-			Dispatcher.BeginInvoke(new Action(() =>
-			{
-				timeBar.ChangeColor(Colors.Gray);
-				ColorSquareStack.Children.Clear();
-			}));
+				}));
+			}
+			return "Noice. I know that one.";
 		}
 	}
 }
