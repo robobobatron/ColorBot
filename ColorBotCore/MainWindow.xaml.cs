@@ -1,25 +1,13 @@
 ﻿using ColorBotCore.Model.Viewmodel;
 using ColorBotCore.Views;
-using Q42.HueApi.ColorConverters;
-using Q42.HueApi.Interfaces;
-using Q42.HueApi;
 using System;
 using System.Collections.Generic;
-using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using ColorBotCore.Model;
 using System.Timers;
+using Microsoft.Extensions.Configuration;
 
 namespace ColorBotCore
 {
@@ -31,15 +19,16 @@ namespace ColorBotCore
 		public List<ColorCount> colorCounts = new();
 		public BridgeCollection _bridgeCollection;
 
-		public readonly int TimerLengthInSeconds = 90;
+		private int TimerLengthInSeconds = 90;
 		private DateTime sinceOneHit = DateTime.Now;
 		private DateTime sinceReset = DateTime.Now;
 
 		public Timer pulse = new() { Interval = 250 };
 
-		public MainWindow(BridgeCollection bs)
+		public MainWindow(BridgeCollection bs, IConfiguration configuration)
 		{
 			InitializeComponent();
+			TimerLengthInSeconds = int.Parse(configuration["TimerLength"]);
 			_bridgeCollection = bs;
 			timeBar.TimerLength = TimeSpan.FromSeconds(TimerLengthInSeconds);
 			pulse.Elapsed += PulseHit;

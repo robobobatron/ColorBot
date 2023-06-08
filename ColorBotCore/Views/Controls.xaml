@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ColorBotCore.Views"
         mc:Ignorable="d"
-        Title="Controls" Height="800" Width="600">
+        Title="Controls" Height="200" Width="500">
 	<Window.Resources>
 		<Style TargetType="{x:Type Button}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Button}">
-						<Grid Background="Purple">
-							<Viewbox>
+						<Grid Background="LightBlue">
+							<Viewbox Margin="5 5 5 5">
 								<ContentPresenter/>
 							</Viewbox>
 						</Grid>
@@ -21,27 +21,28 @@
 			</Setter>
 		</Style>
 	</Window.Resources>
-	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition/>
-			<RowDefinition/>
-			<RowDefinition/>
-			<RowDefinition/>
-			<RowDefinition/>
-			<RowDefinition/>
-			<RowDefinition/>
-		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition/>
-			<ColumnDefinition/>
-		</Grid.ColumnDefinitions>
-		<Viewbox Grid.Row="0" Grid.Column="0">
-			<Label Content="Show drunk rules?"/>
-		</Viewbox>
-		<Button Grid.Column="1" Grid.Row="0" Margin="5 5 5 5" Click="ToggleDrunkRules" Content="Hidden"/>
-		<Viewbox Grid.Row="1" Grid.Column="0">
-			<Label Content="Show test window?"/>
-		</Viewbox>
-		<Button Grid.Column="1" Grid.Row="1" Margin="5 5 5 5" Click="ToggleTestWindow" Content="Showing"/>
-	</Grid>
+	<Window.Background>
+		<ImageBrush ImageSource="/Assets/Stripes.bmp" TileMode="Tile" Viewport="0, 0, 0.05, 0.05" />
+	</Window.Background>
+	<Border BorderThickness="5" CornerRadius="3" BorderBrush="LightBlue" Margin="20, 20, 20, 20">
+		<Grid Background="white">
+			<Grid.RowDefinitions>
+				<RowDefinition/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+			<Viewbox Grid.Row="0" Grid.Column="0">
+				<Label Content="Show drunk rules?"/>
+			</Viewbox>
+			<Button Grid.Column="1" Grid.Row="0" Margin="50 10 50 10" Click="ToggleDrunkRules" Content="Hidden" />
+			<Viewbox Grid.Row="1" Grid.Column="0">
+				<Label Content="Show test window?"/>
+			</Viewbox>
+			<Button Grid.Column="1" Grid.Row="1" Margin="50 10 50 10" Click="ToggleTestWindow" Content="Hidden"/>
+
+		</Grid>
+	</Border>
 </Window>
