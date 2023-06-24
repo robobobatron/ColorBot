@@ -2,6 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Q42.HueApi.Interfaces;
 using System;
+using System.Linq;
+using TwitchLib.Api;
+using TwitchLib.Api.Core;
+using TwitchLib.Api.Services;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -11,6 +15,7 @@ namespace ColorBotCore.Model;
 
 public class TwitchSender
 {
+	private TwitchAPI twitchAPI = new();
 	private TwitchClient twitchClient = new();
 	private TwitchPubSub twitchPubSub = new();
 	
@@ -27,7 +32,6 @@ public class TwitchSender
 		twitchClient.Initialize(new ConnectionCredentials(configuration["CustomRobotName"], configuration["TwitchApiKey"]), configuration["YourChannelName"]);
 		twitchClient.OnJoinedChannel += TwitchClient_OnJoinedChannel;
 		twitchClient.OnChatCommandReceived += TwitchClient_OnChatCommandReceived;
-		twitchClient.OnChannelStateChanged += TwitchClient_OnChannelStateChanged;
 		twitchClient.Connect();
 		
 		twitchPubSub.OnPubSubServiceConnected += TwitchPubSub_OnPubSubServiceConnected;
@@ -48,6 +52,18 @@ public class TwitchSender
 		{
 			twitchClient.SendMessage(e.Command.ChatMessage.Channel, _mainWindow.LogColor(e.Command.ArgumentsAsString));
 		}
+		else if (e.Command.CommandText.ToLower() == "rules")
+		{
+			string GameName = e.Command.ArgumentsAsList.FirstOrDefault();
+			if(!string.IsNullOrWhiteSpace(GameName))
+			{
+
+			}
+			else
+			{
+				twitchClient.SendMessage(e.Command.ChatMessage.Channel, "Sorry! You must specify a game.");
+			}
+		}
 		else if (e.Command.CommandText.ToLower() == "addrule")
 		{
 
@@ -57,13 +73,6 @@ public class TwitchSender
 			twitchClient.SendMessage(e.Command.ChatMessage.Channel, "Sorry! I dont seem to know this command.");
 		}
 	}
-
-	private void TwitchClient_OnChannelStateChanged(object sender, OnChannelStateChangedArgs e)
-	{
-
-	}
-
-
 
 	private void TwitchPubSub_OnBitsReceived(object sender, TwitchLib.PubSub.Events.OnBitsReceivedArgs e)
 	{

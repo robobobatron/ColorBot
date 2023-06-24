@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ColorBotCore.Views"
         mc:Ignorable="d"
-        Title="Controls" Height="200" Width="500">
+        Title="Controls" Height="300" Width="500">
 	<Window.Resources>
 		<Style TargetType="{x:Type Button}">
 			<Setter Property="Template">
@@ -29,6 +29,8 @@
 			<Grid.RowDefinitions>
 				<RowDefinition/>
 				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
 			</Grid.RowDefinitions>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition/>
@@ -42,7 +44,21 @@
 				<Label Content="Show test window?"/>
 			</Viewbox>
 			<Button Grid.Column="1" Grid.Row="1" Margin="50 10 50 10" Click="ToggleTestWindow" Content="Hidden"/>
-
+			<Viewbox Grid.Row="2">
+				<Label Content="Add Game?"/>
+			</Viewbox>
+			<Grid Grid.Row="2" Grid.Column="1" Margin="0 10 0 10">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition/>
+					<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+				<Button Grid.Column="1" Margin="2 2 2 2" Click="ToggleTestWindow" Content="Add"/>
+				<TextBox Grid.Column="0" Margin="2 2 2 2" />
+			</Grid>
+			<Viewbox Grid.Row="4">
+				<Label Content="Active Game"/>
+			</Viewbox>
+			<ListBox Grid.Column="2" Grid.Row="3" Margin="0 5 0 5"/>
 		</Grid>
 	</Border>
 </Window>
