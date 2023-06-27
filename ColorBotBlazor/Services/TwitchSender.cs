@@ -3,13 +3,14 @@ using TwitchLib.Client.Models;
 using TwitchLib.Client;
 using TwitchLib.PubSub;
 using TwitchLib.Api;
+using TwitchLib.Client.Enums;
 
 namespace ColorBotBlazor.Services;
 
 public class TwitchSender
 {
 	private TwitchAPI twitchAPI = new();
-	private TwitchClient twitchClient = new();
+	private TwitchClient twitchClient = new(protocol: ClientProtocol.WebSocket);
 	private TwitchPubSub twitchPubSub = new();
 
 	private readonly IConfiguration config;
@@ -31,7 +32,7 @@ public class TwitchSender
 			twitchPubSub.OnBitsReceived += TwitchPubSub_OnBitsReceived;
 			twitchPubSub.Connect();
 		}
-		catch
+		catch (Exception ex) 
 		{
 
 		}
