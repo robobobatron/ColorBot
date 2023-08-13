@@ -8,12 +8,12 @@ using System.Net.WebSockets;
 using TwitchLib.EventSub.Websockets.Client;
 using TwitchLib.Communication.Clients;
 
-namespace ColorBotBlazor.Services;
+namespace ColorBotBlazorNew.Services;
 
 public class TwitchSender
 {
 	private TwitchAPI twitchAPI = new();
-	private TwitchClient twitchClient = new(client: new CustomWebSocketClient());
+	private TwitchClient twitchClient = new();
 	private TwitchPubSub twitchPubSub = new();
 
 	private readonly IConfiguration config;

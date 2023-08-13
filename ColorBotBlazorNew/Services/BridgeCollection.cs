@@ -6,10 +6,9 @@ using Q42.HueApi.ColorConverters.Original;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ColorBotCore.Model.Database;
-using System.Windows.Media;
+using ColorBotBlazor.Model.Database;
 
-namespace ColorBotCore.Model;
+namespace ColorBotBlazor.Model;
 
 public class BridgeCollection
 {
@@ -40,11 +39,11 @@ public class BridgeCollection
 		db.SaveChanges();
 	}
 
-	public void DoColorChange(Color c)
+	public void DoColorChange(int Red, int Green, int Blue)
 	{
 		LightCommand command = new();
 		command.Brightness = 100;
-		command.TurnOn().SetColor(new RGBColor(c.ScR * 100, c.ScG * 100, c.ScB * 100));
+		command.TurnOn().SetColor(new RGBColor(Red, Green, Blue));
 
 		foreach (LocalHueClient Hue in avaialableBridges)
 		{

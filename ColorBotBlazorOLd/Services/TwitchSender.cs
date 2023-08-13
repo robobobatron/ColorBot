@@ -4,16 +4,13 @@ using TwitchLib.Client;
 using TwitchLib.PubSub;
 using TwitchLib.Api;
 using TwitchLib.Client.Enums;
-using System.Net.WebSockets;
-using TwitchLib.EventSub.Websockets.Client;
-using TwitchLib.Communication.Clients;
 
 namespace ColorBotBlazor.Services;
 
 public class TwitchSender
 {
 	private TwitchAPI twitchAPI = new();
-	private TwitchClient twitchClient = new(client: new CustomWebSocketClient());
+	private TwitchClient twitchClient = new(protocol: ClientProtocol.WebSocket);
 	private TwitchPubSub twitchPubSub = new();
 
 	private readonly IConfiguration config;
@@ -27,7 +24,6 @@ public class TwitchSender
 			var b = configuration["TwitchApiKey"];
 			var c = configuration["YourChannelName"];
 			twitchClient.Initialize(new ConnectionCredentials(a, b), c);
-			twitchClient.OnConnectionError += TwitchClient_OnConnectionError;
 			twitchClient.OnJoinedChannel += TwitchClient_OnJoinedChannel;
 			twitchClient.OnChatCommandReceived += TwitchClient_OnChatCommandReceived;
 			twitchClient.Connect();
@@ -41,11 +37,6 @@ public class TwitchSender
 
 		}
 		
-	}
-
-	private void TwitchClient_OnConnectionError(object sender, OnConnectionErrorArgs e)
-	{
-		throw new NotImplementedException();
 	}
 
 	private void TwitchClient_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
